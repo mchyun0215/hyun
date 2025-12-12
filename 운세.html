@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 운세 & 사주보기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .form-container {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: white;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="date"],
+        input[type="time"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1em;
+        }
+        
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .gender-btns {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .gender-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .gender-btn.active {
+            background: #667eea;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .result-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .result-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .fortune-text {
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .reset-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: white;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-box-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-box-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        small {
+            display: block;
+            margin-top: 5px;
+            color: rgba(255,255,255,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ 오늘의 운세 & 사주 ✨</h1>
+            <p>당신의 하루를 밝혀줄 운세를 확인해보세요</p>
+        </div>
+
+        <div id="inputSection">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('fortune')">🔮 오늘의 운세</button>
+                <button class="tab-btn" onclick="switchTab('saju')">🎋 사주 보기</button>
+            </div>
+
+            <div class="form-container">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" id="name" placeholder="이름을 입력하세요">
+                </div>
+
+                <div class="form-group">
+                    <label>생년월일</label>
+                    <input type="date" id="birthDate">
+                </div>
+
+                <div id="sajuFields" class="hidden">
+                    <div class="form-group">
+                        <label>태어난 시간</label>
+                        <input type="time" id="birthTime">
+                        <small>* 모르시면 오전 6시(06:00)로 입력해주세요</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>성별</label>
+                        <div class="gender-btns">
+                            <button class="gender-btn" onclick="selectGender('male')">남성</button>
+                            <button class="gender-btn" onclick="selectGender('female')">여성</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="calculate()">
+                    <span id="btnText">운세 보기</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loadingSection" class="hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div id="loadingText">운세를 보는 중...</div>
+            </div>
+        </div>
+
+        <div id="resultSection"></div>
+
+        <div style="text-align: center; margin-top: 30px; color: rgba(255,255,255,0.7);">
+            <p>⭐ 운세는 재미로만 봐주세요 ⭐</p>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'fortune';
+        let selectedGender = '';
+
+        const fortunes = {
+            love: [
+                '오늘은 특별한 인연을 만날 수 있는 날입니다. 평소 가지 않던 장소나 새로운 모임에 참여해보세요. 운명적인 만남이 기다리고 있을 수 있습니다. 첫인상보다는 대화를 통해 상대방의 진심을 파악하는 것이 중요합니다. 마음을 열고 솔직한 대화를 나눠보세요.',
+                '기다리던 사람에게서 연락이 올 수 있습니다. 하지만 너무 조급해하지 마세요. 상대방도 용기를 내는 중일 수 있습니다. 먼저 연락을 시도해보는 것도 좋습니다. 진심은 반드시 통하게 되어 있으니 용기를 내보세요.',
+                '사랑하는 사람과의 관계가 한층 깊어지는 시간입니다. 평소 하지 못했던 진솔한 대화를 나눠보세요. 작은 선물이나 편지로 마음을 전하면 더욱 좋습니다. 서로에 대한 이해와 신뢰가 깊어지는 특별한 하루가 될 것입니다.'
+            ],
+            money: [
+                '예상치 못한 금전운이 찾아올 수 있습니다. 투자나 사업 기회에 주목해보세요. 다만 너무 큰 금액보다는 작은 금액으로 시작하는 것이 안전합니다. 주변 사람들의 조언도 귀담아 듣되, 최종 결정은 신중하게 내리세요.',
+                '절약하는 습관이 큰 결실을 맺을 것입니다. 작은 돈이라도 모으는 습관을 들이세요. 지금은 씀씀이를 줄이고 저축에 집중하는 시기입니다.',
+                '재물운이 상승하고 있습니다. 부업이나 재테크에 관심을 가져보세요. 하지만 과도한 욕심은 금물입니다. 안정적이고 검증된 방법을 선택하는 것이 좋습니다.'
+            ],
+            work: [
+                '업무에서 인정받을 수 있는 절호의 기회입니다. 평소보다 조금 더 적극적으로 아이디어를 제안해보세요. 상사나 동료들이 당신의 능력을 주목하고 있습니다. 자신감을 가지고 당당하게 임하세요.',
+                '동료들과의 협력이 성공의 열쇠가 될 것입니다. 혼자서 모든 것을 해결하려 하지 말고 팀워크를 중시하세요.',
+                '새로운 프로젝트나 기회가 찾아올 수 있습니다. 처음에는 부담스러울 수 있지만 도전해볼 만한 가치가 있습니다.'
+            ],
+            health: [
+                '건강 관리에 신경 써야 할 때입니다. 최근 피로가 누적되어 있진 않나요? 충분한 수면과 영양 섭취에 집중하세요.',
+                '운동을 시작하기 좋은 날입니다. 가벼운 산책이나 스트레칭부터 시작해보세요.',
+                '스트레스 해소가 필요합니다. 취미 활동이나 좋아하는 일에 시간을 투자해보세요.'
+            ],
+            overall: [
+                '전반적으로 좋은 기운이 감돕니다. 긍정적인 마음가짐을 유지하세요. 어려운 일이 있어도 낙관적으로 바라보면 해결책이 보입니다.',
+                '작은 행운들이 모여 큰 행복이 될 것입니다. 사소한 것에도 감사하는 마음을 가지세요.',
+                '인내심을 가지고 기다리면 좋은 결과가 있을 것입니다. 지금 당장은 답답하고 힘들 수 있지만 조금만 더 버텨보세요.'
+            ]
+        };
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const sajuFields = document.getElementById('sajuFields');
+            const btnText = document.getElementById('btnText');
+
+            if (tab === 'saju') {
+                sajuFields.classList.remove('hidden');
+                btnText.textContent = '사주 보기';
+            } else {
+                sajuFields.classList.add('hidden');
+                btnText.textContent = '운세 보기';
+            }
+        }
+
+        function selectGender(gender) {
+            selectedGender = gender;
+            const btns = document.querySelectorAll('.gender-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function getZodiac(year) {
+            const signs = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'];
+            return signs[(year - 1924) % 12];
+        }
+
+        function calculate() {
+            const name = document.getElementById('name').value;
+            const birthDate = document.getElementById('birthDate').value;
+
+            if (!name || !birthDate) {
+                alert('이름과 생년월일을 입력해주세요!');
+                return;
+            }
+
+            if (currentTab === 'saju') {
+                const birthTime = document.getElementById('birthTime').value;
+                if (!birthTime || !selectedGender) {
+                    alert('태어난 시간과 성별을 선택해주세요!');
+                    return;
+                }
+            }
+
+            document.getElementById('inputSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            setTimeout(() => {
+                if (currentTab === 'fortune') {
+                    showFortune(name, birthDate);
+                } else {
+                    showSaju(name, birthDate);
+                }
+            }, 2000);
+        }
+
+        function showFortune(name, birthDate) {
+            const year = new Date(birthDate).getFullYear();
+            const zodiac = getZodiac(year);
+            const colors = ['빨강', '파랑', '노랑', '초록', '보라', '분홍'];
+            const numbers = [7, 3, 8, 9, 5, 1];
+
+            const html = `
+                <div class="result-card">
+                    <div class="result-title">☀️ ${name}님의 운세</div>
+                    <div style="text-align: center; font-size: 1.5em; margin: 15px 0;">
+                        🐉 ${zodiac}띠
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">🌟 오늘의 전체운</div>
+                    <div class="fortune-text">${getRandomItem(fortunes.overall)}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">💖 애정운</div>
+                    <div class="fortune-text">${getRandomItem(fortunes.love)}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">💰 금전운</div>
+                    <div class="fortune-text">${getRandomItem(fortunes.money)}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">💼 업무운</div>
+                    <div class="fortune-text">${getRandomItem(fortunes.work)}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">⭐ 건강운</div>
+                    <div class="fortune-text">${getRandomItem(fortunes.health)}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">🍀 행운의 아이템</div>
+                    <div class="grid-2">
+                        <div class="info-box">
+                            <div class="info-box-label">행운의 색</div>
+                            <div class="info-box-value">${getRandomItem(colors)}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">행운의 숫자</div>
+                            <div class="info-box-value">${getRandomItem(numbers)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="reset-btn" onclick="reset()">다시 보기</button>
+            `;
+
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultSection').innerHTML = html;
+        }
+
+        function showSaju(name, birthDate) {
+            const year = new Date(birthDate).getFullYear();
+            const ch = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+            const ji = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+
+            const html = `
+                <div class="result-card">
+                    <div class="result-title">🎋 ${name}님의 사주</div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        ${selectedGender === 'male' ? '남성' : '여성'} | ${year}년생
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">📜 사주팔자</div>
+                    <div class="grid-2">
+                        <div class="info-box">
+                            <div class="info-box-label">년주</div>
+                            <div class="info-box-value">${ch[year % 10]}${ji[year % 12]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">월주</div>
+                            <div class="info-box-value">${ch[(year+3) % 10]}${ji[(year+3) % 12]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">일주</div>
+                            <div class="info-box-value">${ch[(year+6) % 10]}${ji[(year+6) % 12]}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">시주</div>
+                            <div class="info-box-value">${ch[(year+9) % 10]}${ji[(year+9) % 12]}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">💫 성격 분석</div>
+                    <div class="fortune-text">
+                        창의적이고 유연한 사고를 가진 분입니다. 새로운 것을 배우는 것을 좋아하며, 
+                        타인과의 조화를 중시합니다. 교육, 예술, 상담 분야에서 능력을 발휘할 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">🎯 개운 조언</div>
+                    <div class="fortune-text">
+                        균형 잡힌 생활이 중요합니다. 업무와 휴식의 조화를 이루고, 
+                        긍정적인 마음가짐으로 하루를 시작하세요. 건강 관리에도 신경 쓰면 
+                        더욱 좋은 운이 찾아올 것입니다.
+                    </div>
+                </div>
+
+                <button class="reset-btn" onclick="reset()">다시 보기</button>
+            `;
+
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultSection').innerHTML = html;
+        }
+
+        function reset() {
+            document.getElementById('name').value = '';
+            document.getElementById('birthDate').value = '';
+            document.getElementById('birthTime').value = '';
+            selectedGender = '';
+            document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('inputSection').classList.remove('hidden');
+            document.getElementById('resultSection').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
